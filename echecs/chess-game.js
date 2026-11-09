@@ -22,6 +22,8 @@
   let isAiThinking = false;
   let animating = false;
   let moveHistory = [];
+  let statusNotice = '';
+  let statusNoticeTimer = null;
   
   const SQUARE_SIZE = 1;
   const BOARD_OFFSET = 3.5;
@@ -559,6 +561,198 @@
         newGame();
       });
     });
+    
+    setupBoardSizeControl();
+    setupFullscreenControl();
+  }
+  
+  function isMobileLayout() {
+    return window.matchMedia('(max-width: 768px)').matches;
+  }
+
+  function readSavedBoardSize() {
+    try {
+      return localStorage.getItem('chess-board-size') || '660';
+    } catch (e) {
+      return '660';
+    }
+  }
+
+  function writeSavedBoardSize(size) {
+    try {
+      localStorage.setItem('chess-board-size', size);
+    } catch (e) {
+      // localStorage can be blocked; the choice still applies for this session.
+    }
+  }
+
+  function setupBoardSizeControl() {
+    const sizeSelect = document.getElementById('board-size');
+    if (!sizeSelect) return;
+
+    const savedSize = readSavedBoardSize();
+    if (sizeSelect.querySelector(`option[value="${savedSize}"]`)) {
+      sizeSelect.value = savedSize;
+    }
+    applyBoardSize(sizeSelect.value || '660');
+
+    sizeSelect.addEventListener('change', (e) => {
+      const size = e.target.value;
+      writeSavedBoardSize(size);
+      applyBoardSize(size);
+    });
+
+    window.addEventListener('resize', () => {
+      applyBoardSize(sizeSelect.value || '660');
+    });
+  }
+
+  function applyBoardSize(size) {
+    const container = document.getElementById('chess-container');
+    if (!container || isFullscreenActive()) return;
+
+    if (isMobileLayout()) {
+      container.style.width = '';
+      container.style.height = '';
+      container.style.maxWidth = '';
+      container.style.maxHeight = '';
+    } else if (size === 'max') {
+      const fit = 'min(calc(100vh - 140px), calc(100vw - 520px))';
+      container.style.width = fit;
+      container.style.height = fit;
+      container.style.maxWidth = fit;
+      container.style.maxHeight = fit;
+    } else {
+      const sizeNum = parseInt(size, 10) || 660;
+      container.style.width = `${sizeNum}px`;
+      container.style.height = `${sizeNum}px`;
+      container.style.maxWidth = `${sizeNum}px`;
+      container.style.maxHeight = `${sizeNum}px`;
+    }
+
+    scheduleRendererResize();
+  }
+
+  function scheduleRendererResize() {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(onWindowResize);
+    });
+  }
+
+  function isFullscreenSupported() {
+    const stage = document.getElementById('board-stage');
+    if (!stage) return false;
+    const api = !!(
+      document.fullscreenEnabled ||
+      document.webkitFullscreenEnabled ||
+      document.mozFullScreenEnabled ||
+      document.msFullscreenEnabled
+    );
+    const method = !!(
+      stage.requestFullscreen ||
+      stage.webkitRequestFullscreen ||
+      stage.mozRequestFullScreen ||
+      stage.msRequestFullscreen
+    );
+    return api && method;
+  }
+
+  function isFullscreenActive() {
+    return !!(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    );
+  }
+
+  function setupFullscreenControl() {
+    const fullscreenBtn = document.getElementById('btn-fullscreen');
+    const stage = document.getElementById('board-stage');
+
+    if (!fullscreenBtn || !stage) return;
+
+    if (!isFullscreenSupported()) {
+      fullscreenBtn.hidden = true;
+      return;
+    }
+
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+    document.addEventListener('mozfullscreenchange', onFullscreenChange);
+    document.addEventListener('msfullscreenchange', onFullscreenChange);
+  }
+
+  function toggleFullscreen() {
+    const stage = document.getElementById('board-stage');
+    if (!stage) return;
+
+    if (!isFullscreenActive()) {
+      const request = stage.requestFullscreen ||
+        stage.webkitRequestFullscreen ||
+        stage.mozRequestFullScreen ||
+        stage.msRequestFullscreen;
+      if (request) {
+        const result = request.call(stage);
+        if (result && typeof result.catch === 'function') {
+          result.catch(() => {});
+        }
+      }
+    } else {
+      const exit = document.exitFullscreen ||
+        document.webkitExitFullscreen ||
+        document.mozCancelFullScreen ||
+        document.msExitFullscreen;
+      if (exit) {
+        const result = exit.call(document);
+        if (result && typeof result.catch === 'function') {
+          result.catch(() => {});
+        }
+      }
+    }
+  }
+
+  function onFullscreenChange() {
+    const fullscreenLabel = document.getElementById('fullscreen-label');
+    const fullscreenBtn = document.getElementById('btn-fullscreen');
+    const stage = document.getElementById('board-stage');
+    const active = isFullscreenActive();
+
+    if (stage) stage.classList.toggle('is-fullscreen', active);
+
+    if (fullscreenLabel) {
+      fullscreenLabel.textContent = active ? 'Quitter le plein écran' : 'Plein écran';
+    }
+    if (fullscreenBtn) {
+      fullscreenBtn.setAttribute('aria-label', active ? 'Quitter le plein écran' : 'Plein écran');
+    }
+
+    if (!active) {
+      const sizeSelect = document.getElementById('board-size');
+      applyBoardSize(sizeSelect ? sizeSelect.value : '660');
+    }
+    scheduleRendererResize();
+  }
+
+  function showEnPassantMessage() {
+    statusNotice = 'Prise en passant !';
+    const toast = document.getElementById('board-toast');
+    if (toast) {
+      toast.hidden = false;
+      toast.textContent = statusNotice;
+    }
+    const status = document.getElementById('game-status');
+    if (status) status.textContent = statusNotice;
+
+    clearTimeout(statusNoticeTimer);
+    statusNoticeTimer = setTimeout(() => {
+      statusNotice = '';
+      const toastEl = document.getElementById('board-toast');
+      if (toastEl) toastEl.hidden = true;
+      if (game) updateUI();
+    }, 2800);
   }
 
   function onBoardClick(event) {
@@ -705,6 +899,7 @@
       if (epPawn) {
         addCapturedPiece('p', epPawn.userData.color);
       }
+      showEnPassantMessage();
     }
     
     const targetX = toFile * SQUARE_SIZE - BOARD_OFFSET;
@@ -956,7 +1151,9 @@
     `;
     
     let statusText = '';
-    if (isAiThinking) {
+    if (statusNotice) {
+      statusText = statusNotice;
+    } else if (isAiThinking) {
       statusText = '🤔 L\'IA réfléchit...';
     } else if (game.in_checkmate()) {
       const winner = game.turn() === 'w' ? 'Noirs' : 'Blancs';
@@ -1005,10 +1202,13 @@
 
   function onWindowResize() {
     const container = document.getElementById('chess-container');
-    const aspect = container.clientWidth / container.clientHeight;
-    camera.aspect = aspect;
+    if (!container || !camera || !renderer) return;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    if (!width || !height) return;
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(width, height);
   }
 
   function animate() {
@@ -1038,6 +1238,9 @@
         createPieces();
         clearHighlights();
         selectedSquare = null;
+        if (result.flags && result.flags.indexOf('e') !== -1) {
+          showEnPassantMessage();
+        }
         updateUI();
         
         if (gameMode === 'ai' && !game.game_over() && game.turn() === aiColor[0]) {

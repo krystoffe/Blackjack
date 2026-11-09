@@ -40,18 +40,36 @@
       </aside>
 
       <main class="chess-main">
-        <div id="chess-container"></div>
-        
-        <div class="controls-bar">
-          <button class="control-btn" id="btn-new-game" aria-label="Nouvelle partie">
-            <span>🎮</span> Nouvelle partie
-          </button>
-          <button class="control-btn" id="btn-undo" aria-label="Annuler le coup" disabled>
-            <span>↶</span> Annuler
-          </button>
-          <button class="control-btn secondary" id="btn-reset-camera" aria-label="Réinitialiser la caméra">
-            <span>📷</span> Réinitialiser vue
-          </button>
+        <div class="board-controls desktop-only">
+          <div class="size-control">
+            <label for="board-size">Taille :</label>
+            <select id="board-size" class="size-select">
+              <option value="520">Petit</option>
+              <option value="660" selected>Moyen</option>
+              <option value="820">Grand</option>
+              <option value="max">Très grand</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="board-stage">
+          <div id="chess-container"></div>
+          <div id="board-toast" class="board-toast" hidden>Prise en passant !</div>
+
+          <div class="controls-bar">
+            <button class="control-btn" id="btn-new-game" aria-label="Nouvelle partie">
+              <span>🎮</span> Nouvelle partie
+            </button>
+            <button class="control-btn" id="btn-undo" aria-label="Annuler le coup" disabled>
+              <span>↶</span> Annuler
+            </button>
+            <button class="control-btn secondary" id="btn-reset-camera" aria-label="Réinitialiser la caméra">
+              <span>📷</span> Réinitialiser vue
+            </button>
+            <button class="control-btn fullscreen-btn" id="btn-fullscreen" aria-label="Plein écran">
+              <span>⛶</span> <span id="fullscreen-label">Plein écran</span>
+            </button>
+          </div>
         </div>
       </main>
 
