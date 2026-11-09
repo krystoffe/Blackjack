@@ -106,6 +106,7 @@
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.domElement.style.touchAction = 'none';
     container.appendChild(renderer.domElement);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
@@ -535,7 +536,33 @@
 
   function setupEventListeners() {
     renderer.domElement.addEventListener('click', onBoardClick);
-    renderer.domElement.addEventListener('touchend', onBoardClick);
+    let tapStart = null;
+    renderer.domElement.addEventListener('touchstart', (event) => {
+      if (event.touches.length !== 1) {
+        tapStart = null;
+        return;
+      }
+      tapStart = {
+        x: event.touches[0].clientX,
+        y: event.touches[0].clientY,
+        moved: false
+      };
+    }, { passive: true });
+    renderer.domElement.addEventListener('touchmove', (event) => {
+      if (!tapStart || event.touches.length !== 1) {
+        tapStart = null;
+        return;
+      }
+      const dx = event.touches[0].clientX - tapStart.x;
+      const dy = event.touches[0].clientY - tapStart.y;
+      if (dx * dx + dy * dy > 64) tapStart.moved = true;
+    }, { passive: true });
+    renderer.domElement.addEventListener('touchend', (event) => {
+      const start = tapStart;
+      tapStart = null;
+      if (!start || start.moved || (event.touches && event.touches.length > 0)) return;
+      onBoardClick(event);
+    });
     
     document.getElementById('btn-new-game').addEventListener('click', newGame);
     document.getElementById('btn-undo').addEventListener('click', undoMove);
@@ -603,13 +630,20 @@
     });
 
     window.addEventListener('resize', () => {
+      if (isPresentationFullscreen()) {
+        scheduleRendererResize();
+        return;
+      }
       applyBoardSize(sizeSelect.value || '660');
+    });
+    window.addEventListener('orientationchange', () => {
+      if (isPresentationFullscreen()) scheduleRendererResize();
     });
   }
 
   function applyBoardSize(size) {
     const container = document.getElementById('chess-container');
-    if (!container || isFullscreenActive()) return;
+    if (!container || isPresentationFullscreen()) return;
 
     if (isMobileLayout()) {
       container.style.width = '';
@@ -639,6 +673,8 @@
     });
   }
 
+  let pseudoFullscreen = false;
+
   function isFullscreenSupported() {
     const stage = document.getElementById('board-stage');
     if (!stage) return false;
@@ -666,74 +702,113 @@
     );
   }
 
+  function isPresentationFullscreen() {
+    return isFullscreenActive() || pseudoFullscreen;
+  }
+
   function setupFullscreenControl() {
     const fullscreenBtn = document.getElementById('btn-fullscreen');
     const stage = document.getElementById('board-stage');
 
     if (!fullscreenBtn || !stage) return;
 
-    if (!isFullscreenSupported()) {
-      fullscreenBtn.hidden = true;
-      return;
-    }
-
+    fullscreenBtn.hidden = false;
     fullscreenBtn.addEventListener('click', toggleFullscreen);
 
     document.addEventListener('fullscreenchange', onFullscreenChange);
     document.addEventListener('webkitfullscreenchange', onFullscreenChange);
     document.addEventListener('mozfullscreenchange', onFullscreenChange);
     document.addEventListener('msfullscreenchange', onFullscreenChange);
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && pseudoFullscreen) {
+        exitPseudoFullscreen();
+      }
+    });
+  }
+
+  function enterPseudoFullscreen() {
+    pseudoFullscreen = true;
+    applyFullscreenChrome(true);
+  }
+
+  function exitPseudoFullscreen() {
+    pseudoFullscreen = false;
+    applyFullscreenChrome(false);
+  }
+
+  function exitNativeFullscreen() {
+    const exit = document.exitFullscreen ||
+      document.webkitExitFullscreen ||
+      document.mozCancelFullScreen ||
+      document.msExitFullscreen;
+    if (!exit) return;
+    try {
+      const result = exit.call(document);
+      if (result && typeof result.catch === 'function') result.catch(() => {});
+    } catch (e) {
+      // The API can throw if the document is not fullscreen.
+    }
   }
 
   function toggleFullscreen() {
     const stage = document.getElementById('board-stage');
     if (!stage) return;
 
-    if (!isFullscreenActive()) {
-      const request = stage.requestFullscreen ||
-        stage.webkitRequestFullscreen ||
-        stage.mozRequestFullScreen ||
-        stage.msRequestFullscreen;
-      if (request) {
-        const result = request.call(stage);
-        if (result && typeof result.catch === 'function') {
-          result.catch(() => {});
-        }
+    if (isFullscreenActive()) {
+      exitNativeFullscreen();
+      return;
+    }
+    if (pseudoFullscreen) {
+      exitPseudoFullscreen();
+      return;
+    }
+
+    if (!isFullscreenSupported()) {
+      enterPseudoFullscreen();
+      return;
+    }
+
+    const request = stage.requestFullscreen ||
+      stage.webkitRequestFullscreen ||
+      stage.mozRequestFullScreen ||
+      stage.msRequestFullscreen;
+    try {
+      const result = request.call(stage);
+      if (result && typeof result.catch === 'function') {
+        result.catch(() => enterPseudoFullscreen());
       }
-    } else {
-      const exit = document.exitFullscreen ||
-        document.webkitExitFullscreen ||
-        document.mozCancelFullScreen ||
-        document.msExitFullscreen;
-      if (exit) {
-        const result = exit.call(document);
-        if (result && typeof result.catch === 'function') {
-          result.catch(() => {});
-        }
-      }
+    } catch (e) {
+      enterPseudoFullscreen();
     }
   }
 
-  function onFullscreenChange() {
+  function applyFullscreenChrome(active) {
+    const stage = document.getElementById('board-stage');
     const fullscreenLabel = document.getElementById('fullscreen-label');
     const fullscreenBtn = document.getElementById('btn-fullscreen');
-    const stage = document.getElementById('board-stage');
-    const active = isFullscreenActive();
+    const label = active ? 'Quitter le plein écran' : 'Plein écran';
 
     if (stage) stage.classList.toggle('is-fullscreen', active);
+    document.documentElement.classList.toggle('board-fullscreen', active);
+    document.body.classList.toggle('board-fullscreen', active);
 
-    if (fullscreenLabel) {
-      fullscreenLabel.textContent = active ? 'Quitter le plein écran' : 'Plein écran';
-    }
-    if (fullscreenBtn) {
-      fullscreenBtn.setAttribute('aria-label', active ? 'Quitter le plein écran' : 'Plein écran');
-    }
+    if (fullscreenLabel) fullscreenLabel.textContent = label;
+    if (fullscreenBtn) fullscreenBtn.setAttribute('aria-label', label);
 
     if (!active) {
       const sizeSelect = document.getElementById('board-size');
       applyBoardSize(sizeSelect ? sizeSelect.value : '660');
     }
     scheduleRendererResize();
+  }
+
+  function onFullscreenChange() {
+    if (isFullscreenActive()) {
+      pseudoFullscreen = false;
+      applyFullscreenChrome(true);
+      return;
+    }
+    if (!pseudoFullscreen) applyFullscreenChrome(false);
   }
 
   function showEnPassantMessage() {

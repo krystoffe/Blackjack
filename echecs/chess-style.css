@@ -41,6 +41,13 @@ body {
   touch-action: pan-y pinch-zoom;
 }
 
+html.board-fullscreen,
+body.board-fullscreen {
+  overflow: hidden;
+  height: 100%;
+  overscroll-behavior: none;
+}
+
 .home-link {
   position: fixed;
   top: 0.75rem;
@@ -157,6 +164,11 @@ h1 {
 
 #chess-container:active {
   cursor: grabbing;
+}
+
+#chess-container canvas {
+  touch-action: none;
+  pointer-events: auto;
 }
 
 .panel {
@@ -383,59 +395,61 @@ h1 {
   display: flex;
 }
 
-#board-stage:fullscreen,
-#board-stage:-webkit-full-screen {
-  width: 100vw;
-  height: 100vh;
-  max-width: 100vw;
-  max-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: var(--bg-main);
-  box-sizing: border-box;
-}
-
 #board-stage.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
   width: 100vw;
+  width: 100dvw;
   height: 100vh;
+  height: 100dvh;
   max-width: 100vw;
+  max-width: 100dvw;
   max-height: 100vh;
+  max-height: 100dvh;
+  margin: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: var(--bg-main);
+  gap: 0.5rem;
   box-sizing: border-box;
-}
-
-#board-stage:fullscreen #chess-container,
-#board-stage:-webkit-full-screen #chess-container {
-  width: min(calc(100vh - 150px), calc(100vw - 16px)) !important;
-  height: min(calc(100vh - 150px), calc(100vw - 16px)) !important;
-  max-width: min(calc(100vh - 150px), calc(100vw - 16px)) !important;
-  max-height: min(calc(100vh - 150px), calc(100vw - 16px)) !important;
+  background: var(--bg-main);
+  padding:
+    calc(0.5rem + env(safe-area-inset-top, 0px))
+    calc(0.5rem + env(safe-area-inset-right, 0px))
+    calc(0.5rem + env(safe-area-inset-bottom, 0px))
+    calc(0.5rem + env(safe-area-inset-left, 0px));
 }
 
 #board-stage.is-fullscreen #chess-container {
-  width: min(calc(100vh - 150px), calc(100vw - 16px)) !important;
-  height: min(calc(100vh - 150px), calc(100vw - 16px)) !important;
-  max-width: min(calc(100vh - 150px), calc(100vw - 16px)) !important;
-  max-height: min(calc(100vh - 150px), calc(100vw - 16px)) !important;
+  width: min(
+    calc(100dvh - 9rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+    calc(100dvw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))
+  ) !important;
+  height: min(
+    calc(100dvh - 9rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+    calc(100dvw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))
+  ) !important;
+  max-width: min(
+    calc(100dvh - 9rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+    calc(100dvw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))
+  ) !important;
+  max-height: min(
+    calc(100dvh - 9rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+    calc(100dvw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))
+  ) !important;
+  touch-action: none;
+  pointer-events: auto;
 }
 
-#board-stage:fullscreen .controls-bar,
-#board-stage:-webkit-full-screen .controls-bar,
 #board-stage.is-fullscreen .controls-bar {
   position: relative;
   z-index: 2;
   max-width: none;
   width: auto;
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 .controls-bar {
