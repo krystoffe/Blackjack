@@ -498,6 +498,27 @@
       }
     });
   }
+  
+  function syncPiecesFromGame() {
+    clearPieces();
+    const board = game.board();
+    
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const square = board[row][col];
+        if (square) {
+          const color = square.color === 'w' ? 'white' : 'black';
+          const piece = createPieceMesh(square.type, color);
+          const x = col * SQUARE_SIZE - BOARD_OFFSET;
+          const z = row * SQUARE_SIZE - BOARD_OFFSET;
+          piece.position.set(x, 0.05, z);
+          
+          scene.add(piece);
+          board3D[row][col].piece = piece;
+        }
+      }
+    }
+  }
 
   function clearPieces() {
     board3D.forEach(row => {
@@ -670,57 +691,42 @@
     const toRank = 8 - parseInt(move.to[1]);
     
     const piece = board3D[fromRank][fromFile].piece;
-    const captured = board3D[toRank][toFile].piece;
     
-    if (captured) {
-      scene.remove(captured);
-      addCapturedPiece(captured.userData.type, captured.userData.color);
+    if (result.captured) {
+      const captured = board3D[toRank][toFile].piece;
+      if (captured) {
+        addCapturedPiece(captured.userData.type, captured.userData.color);
+      }
     }
     
     if (result.flags.includes('e')) {
       const epRank = result.color === 'w' ? toRank + 1 : toRank - 1;
       const epPawn = board3D[epRank][toFile].piece;
       if (epPawn) {
-        scene.remove(epPawn);
-        board3D[epRank][toFile].piece = null;
         addCapturedPiece('p', epPawn.userData.color);
-      }
-    }
-    
-    if (result.flags.includes('k') || result.flags.includes('q')) {
-      let rookFromFile, rookToFile;
-      if (result.flags.includes('k')) {
-        rookFromFile = 7;
-        rookToFile = 5;
-      } else {
-        rookFromFile = 0;
-        rookToFile = 3;
-      }
-      const rookRank = fromRank;
-      const rook = board3D[rookRank][rookFromFile].piece;
-      if (rook) {
-        const targetX = rookToFile * SQUARE_SIZE - BOARD_OFFSET;
-        animatePiece(rook, targetX, rook.position.z, () => {});
-        board3D[rookRank][rookToFile].piece = rook;
-        board3D[rookRank][rookFromFile].piece = null;
       }
     }
     
     const targetX = toFile * SQUARE_SIZE - BOARD_OFFSET;
     const targetZ = toRank * SQUARE_SIZE - BOARD_OFFSET;
     
-    animatePiece(piece, targetX, targetZ, () => {
-      if (result.promotion) {
-        scene.remove(piece);
-        const newPiece = createPieceMesh(result.promotion, result.color === 'w' ? 'white' : 'black');
-        newPiece.position.set(targetX, 0.05, targetZ);
-        scene.add(newPiece);
-        board3D[toRank][toFile].piece = newPiece;
-      } else {
-        board3D[toRank][toFile].piece = piece;
-      }
-      
-      board3D[fromRank][fromFile].piece = null;
+    if (piece) {
+      animatePiece(piece, targetX, targetZ, () => {
+        syncPiecesFromGame();
+        
+        clearHighlights();
+        selectedSquare = null;
+        legalMoves = [];
+        animating = false;
+        
+        updateUI();
+        
+        if (gameMode === 'ai' && !game.game_over() && game.turn() === aiColor[0]) {
+          setTimeout(makeAIMove, 500);
+        }
+      });
+    } else {
+      syncPiecesFromGame();
       
       clearHighlights();
       selectedSquare = null;
@@ -732,7 +738,7 @@
       if (gameMode === 'ai' && !game.game_over() && game.turn() === aiColor[0]) {
         setTimeout(makeAIMove, 500);
       }
-    });
+    }
   }
 
   function animatePiece(piece, targetX, targetZ, callback) {
