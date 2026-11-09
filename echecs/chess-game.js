@@ -27,6 +27,20 @@
   const BOARD_OFFSET = 3.5;
 
   function init() {
+    if (typeof THREE === 'undefined' || typeof Chess === 'undefined') {
+      console.error('Three.js ou chess.js non chargé');
+      showFallbackMessage('Les bibliothèques 3D ne sont pas chargées. Veuillez rafraîchir la page.');
+      return;
+    }
+    
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if (!gl) {
+      console.error('WebGL non supporté');
+      showFallbackMessage('WebGL n\'est pas supporté par votre navigateur. Les échecs 3D nécessitent WebGL pour fonctionner.');
+      return;
+    }
+    
     game = new Chess();
     
     setupScene();
@@ -40,6 +54,19 @@
     if (gameMode === 'ai' && aiColor === 'white' && game.turn() === 'w') {
       setTimeout(makeAIMove, 500);
     }
+  }
+
+  function showFallbackMessage(message) {
+    const container = document.getElementById('chess-container');
+    container.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #2c1810; color: #f5f1e8; padding: 2rem; text-align: center; border-radius: 12px;">
+        <div>
+          <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+          <h2 style="margin-bottom: 1rem;">Échecs 3D indisponible</h2>
+          <p style="color: #c4b5a0;">${message}</p>
+        </div>
+      </div>
+    `;
   }
 
   function setupScene() {
@@ -176,154 +203,246 @@
   function createPieceMesh(type, color) {
     const isWhite = color === 'white';
     const material = new THREE.MeshStandardMaterial({
-      color: isWhite ? 0xf8f8f0 : 0x2c2c2c,
-      roughness: 0.4,
-      metalness: 0.2
+      color: isWhite ? 0xf5f5dc : 0x1a1a1a,
+      roughness: isWhite ? 0.3 : 0.2,
+      metalness: isWhite ? 0.1 : 0.4,
+      envMapIntensity: 0.5
     });
 
     const group = new THREE.Group();
     
-    const baseRadius = 0.35;
-    const baseHeight = 0.1;
-    const baseGeo = new THREE.CylinderGeometry(baseRadius, baseRadius * 1.1, baseHeight, 16);
-    const base = new THREE.Mesh(baseGeo, material);
-    base.castShadow = true;
-    group.add(base);
-
     switch(type) {
       case 'p': {
-        const bodyGeo = new THREE.SphereGeometry(0.25, 12, 12);
-        const body = new THREE.Mesh(bodyGeo, material);
-        body.position.y = 0.35;
-        body.scale.y = 1.3;
-        body.castShadow = true;
-        group.add(body);
-
-        const topGeo = new THREE.SphereGeometry(0.12, 8, 8);
-        const top = new THREE.Mesh(topGeo, material);
-        top.position.y = 0.7;
-        top.castShadow = true;
-        group.add(top);
+        const points = [
+          new THREE.Vector2(0.0, 0.0),
+          new THREE.Vector2(0.35, 0.0),
+          new THREE.Vector2(0.32, 0.05),
+          new THREE.Vector2(0.18, 0.15),
+          new THREE.Vector2(0.16, 0.25),
+          new THREE.Vector2(0.18, 0.35),
+          new THREE.Vector2(0.20, 0.45),
+          new THREE.Vector2(0.22, 0.55),
+          new THREE.Vector2(0.20, 0.62),
+          new THREE.Vector2(0.15, 0.68),
+          new THREE.Vector2(0.18, 0.73),
+          new THREE.Vector2(0.22, 0.78),
+          new THREE.Vector2(0.20, 0.83),
+          new THREE.Vector2(0.12, 0.88),
+          new THREE.Vector2(0.0, 0.88)
+        ];
+        const geo = new THREE.LatheGeometry(points, 24);
+        const pawn = new THREE.Mesh(geo, material);
+        pawn.castShadow = true;
+        pawn.receiveShadow = true;
+        group.add(pawn);
         break;
       }
+      
       case 'n': {
-        const neckGeo = new THREE.CylinderGeometry(0.2, 0.3, 0.5, 12);
-        const neck = new THREE.Mesh(neckGeo, material);
-        neck.position.y = 0.3;
-        neck.castShadow = true;
-        group.add(neck);
-
-        const headGeo = new THREE.BoxGeometry(0.3, 0.4, 0.35);
+        const basePoints = [
+          new THREE.Vector2(0.0, 0.0),
+          new THREE.Vector2(0.35, 0.0),
+          new THREE.Vector2(0.32, 0.05),
+          new THREE.Vector2(0.22, 0.15),
+          new THREE.Vector2(0.20, 0.30),
+          new THREE.Vector2(0.22, 0.50),
+          new THREE.Vector2(0.20, 0.65),
+          new THREE.Vector2(0.15, 0.75),
+          new THREE.Vector2(0.0, 0.75)
+        ];
+        const baseGeo = new THREE.LatheGeometry(basePoints, 20);
+        const base = new THREE.Mesh(baseGeo, material);
+        base.castShadow = true;
+        group.add(base);
+        
+        const headGeo = new THREE.BoxGeometry(0.28, 0.45, 0.38);
         const head = new THREE.Mesh(headGeo, material);
-        head.position.set(0.15, 0.7, 0);
-        head.rotation.y = Math.PI / 6;
+        head.position.set(0.18, 0.88, 0);
+        head.rotation.y = Math.PI / 7;
+        head.rotation.z = Math.PI / 12;
         head.castShadow = true;
         group.add(head);
-
-        const earGeo = new THREE.ConeGeometry(0.1, 0.2, 6);
+        
+        const snoutGeo = new THREE.BoxGeometry(0.18, 0.22, 0.28);
+        const snout = new THREE.Mesh(snoutGeo, material);
+        snout.position.set(0.30, 0.82, 0);
+        snout.rotation.y = Math.PI / 7;
+        snout.rotation.z = Math.PI / 20;
+        snout.castShadow = true;
+        group.add(snout);
+        
+        const earGeo = new THREE.ConeGeometry(0.08, 0.25, 8);
         const ear = new THREE.Mesh(earGeo, material);
-        ear.position.set(0.15, 0.95, 0);
+        ear.position.set(0.16, 1.15, 0);
+        ear.rotation.z = -Math.PI / 10;
         ear.castShadow = true;
         group.add(ear);
+        
+        const maneGeo = new THREE.BoxGeometry(0.12, 0.35, 0.15);
+        const mane = new THREE.Mesh(maneGeo, material);
+        mane.position.set(0.08, 1.0, 0);
+        mane.rotation.z = -Math.PI / 8;
+        mane.castShadow = true;
+        group.add(mane);
         break;
       }
+      
       case 'b': {
-        const bodyGeo = new THREE.CylinderGeometry(0.25, 0.32, 0.6, 12);
-        const body = new THREE.Mesh(bodyGeo, material);
-        body.position.y = 0.35;
-        body.castShadow = true;
-        group.add(body);
-
-        const topGeo = new THREE.SphereGeometry(0.22, 12, 12);
-        const top = new THREE.Mesh(topGeo, material);
-        top.position.y = 0.8;
-        top.castShadow = true;
-        group.add(top);
-
-        const cutGeo = new THREE.SphereGeometry(0.08, 8, 8);
-        const cut = new THREE.Mesh(cutGeo, material);
-        cut.position.y = 1.05;
-        cut.castShadow = true;
-        group.add(cut);
+        const points = [
+          new THREE.Vector2(0.0, 0.0),
+          new THREE.Vector2(0.36, 0.0),
+          new THREE.Vector2(0.33, 0.05),
+          new THREE.Vector2(0.24, 0.15),
+          new THREE.Vector2(0.22, 0.30),
+          new THREE.Vector2(0.20, 0.45),
+          new THREE.Vector2(0.22, 0.60),
+          new THREE.Vector2(0.24, 0.70),
+          new THREE.Vector2(0.22, 0.80),
+          new THREE.Vector2(0.18, 0.90),
+          new THREE.Vector2(0.20, 0.98),
+          new THREE.Vector2(0.22, 1.05),
+          new THREE.Vector2(0.18, 1.12),
+          new THREE.Vector2(0.12, 1.18),
+          new THREE.Vector2(0.08, 1.22),
+          new THREE.Vector2(0.10, 1.28),
+          new THREE.Vector2(0.15, 1.32),
+          new THREE.Vector2(0.12, 1.38),
+          new THREE.Vector2(0.0, 1.38)
+        ];
+        const geo = new THREE.LatheGeometry(points, 24);
+        const bishop = new THREE.Mesh(geo, material);
+        bishop.castShadow = true;
+        bishop.receiveShadow = true;
+        group.add(bishop);
+        
+        const slitGeo = new THREE.SphereGeometry(0.08, 12, 12);
+        const slit = new THREE.Mesh(slitGeo, material);
+        slit.position.y = 1.40;
+        slit.scale.set(0.8, 0.6, 1);
+        slit.castShadow = true;
+        group.add(slit);
         break;
       }
+      
       case 'r': {
-        const bodyGeo = new THREE.CylinderGeometry(0.3, 0.33, 0.7, 12);
-        const body = new THREE.Mesh(bodyGeo, material);
-        body.position.y = 0.4;
-        body.castShadow = true;
-        group.add(body);
-
-        const topGeo = new THREE.CylinderGeometry(0.32, 0.3, 0.15, 12);
-        const top = new THREE.Mesh(topGeo, material);
-        top.position.y = 0.85;
-        top.castShadow = true;
-        group.add(top);
-
+        const points = [
+          new THREE.Vector2(0.0, 0.0),
+          new THREE.Vector2(0.38, 0.0),
+          new THREE.Vector2(0.35, 0.05),
+          new THREE.Vector2(0.26, 0.15),
+          new THREE.Vector2(0.24, 0.30),
+          new THREE.Vector2(0.26, 0.50),
+          new THREE.Vector2(0.28, 0.70),
+          new THREE.Vector2(0.30, 0.85),
+          new THREE.Vector2(0.32, 0.95),
+          new THREE.Vector2(0.34, 1.00),
+          new THREE.Vector2(0.32, 1.05),
+          new THREE.Vector2(0.28, 1.08),
+          new THREE.Vector2(0.30, 1.12),
+          new THREE.Vector2(0.32, 1.15),
+          new THREE.Vector2(0.30, 1.20),
+          new THREE.Vector2(0.0, 1.20)
+        ];
+        const geo = new THREE.LatheGeometry(points, 24);
+        const rook = new THREE.Mesh(geo, material);
+        rook.castShadow = true;
+        rook.receiveShadow = true;
+        group.add(rook);
+        
         for (let i = 0; i < 4; i++) {
           const angle = (i * Math.PI) / 2;
-          const battlementGeo = new THREE.BoxGeometry(0.1, 0.15, 0.1);
-          const battlement = new THREE.Mesh(battlementGeo, material);
-          battlement.position.set(
-            Math.cos(angle) * 0.25,
-            1.0,
-            Math.sin(angle) * 0.25
+          const crenelGeo = new THREE.BoxGeometry(0.12, 0.18, 0.12);
+          const crenel = new THREE.Mesh(crenelGeo, material);
+          crenel.position.set(
+            Math.cos(angle) * 0.26,
+            1.29,
+            Math.sin(angle) * 0.26
           );
-          battlement.castShadow = true;
-          group.add(battlement);
+          crenel.castShadow = true;
+          group.add(crenel);
         }
         break;
       }
+      
       case 'q': {
-        const bodyGeo = new THREE.CylinderGeometry(0.28, 0.35, 0.8, 16);
-        const body = new THREE.Mesh(bodyGeo, material);
-        body.position.y = 0.45;
-        body.castShadow = true;
-        group.add(body);
-
-        const crownGeo = new THREE.SphereGeometry(0.25, 12, 12);
-        const crown = new THREE.Mesh(crownGeo, material);
-        crown.position.y = 1.0;
-        crown.scale.y = 0.6;
-        crown.castShadow = true;
-        group.add(crown);
-
-        for (let i = 0; i < 5; i++) {
-          const angle = (i * Math.PI * 2) / 5;
-          const spikeGeo = new THREE.ConeGeometry(0.06, 0.25, 6);
+        const points = [
+          new THREE.Vector2(0.0, 0.0),
+          new THREE.Vector2(0.38, 0.0),
+          new THREE.Vector2(0.35, 0.05),
+          new THREE.Vector2(0.26, 0.15),
+          new THREE.Vector2(0.24, 0.30),
+          new THREE.Vector2(0.26, 0.50),
+          new THREE.Vector2(0.28, 0.70),
+          new THREE.Vector2(0.26, 0.85),
+          new THREE.Vector2(0.22, 0.95),
+          new THREE.Vector2(0.24, 1.05),
+          new THREE.Vector2(0.26, 1.15),
+          new THREE.Vector2(0.24, 1.25),
+          new THREE.Vector2(0.20, 1.32),
+          new THREE.Vector2(0.22, 1.38),
+          new THREE.Vector2(0.0, 1.38)
+        ];
+        const geo = new THREE.LatheGeometry(points, 28);
+        const queen = new THREE.Mesh(geo, material);
+        queen.castShadow = true;
+        queen.receiveShadow = true;
+        group.add(queen);
+        
+        for (let i = 0; i < 8; i++) {
+          const angle = (i * Math.PI * 2) / 8;
+          const spikeGeo = new THREE.ConeGeometry(0.05, 0.28, 8);
           const spike = new THREE.Mesh(spikeGeo, material);
           spike.position.set(
-            Math.cos(angle) * 0.22,
-            1.25,
-            Math.sin(angle) * 0.22
+            Math.cos(angle) * 0.20,
+            1.52,
+            Math.sin(angle) * 0.20
           );
           spike.castShadow = true;
           group.add(spike);
         }
+        
+        const orb = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), material);
+        orb.position.y = 1.70;
+        orb.castShadow = true;
+        group.add(orb);
         break;
       }
+      
       case 'k': {
-        const bodyGeo = new THREE.CylinderGeometry(0.3, 0.36, 0.9, 16);
-        const body = new THREE.Mesh(bodyGeo, material);
-        body.position.y = 0.5;
-        body.castShadow = true;
-        group.add(body);
-
-        const crownGeo = new THREE.CylinderGeometry(0.28, 0.25, 0.2, 16);
-        const crown = new THREE.Mesh(crownGeo, material);
-        crown.position.y = 1.1;
-        crown.castShadow = true;
-        group.add(crown);
-
-        const crossVGeo = new THREE.BoxGeometry(0.08, 0.35, 0.08);
+        const points = [
+          new THREE.Vector2(0.0, 0.0),
+          new THREE.Vector2(0.40, 0.0),
+          new THREE.Vector2(0.37, 0.05),
+          new THREE.Vector2(0.28, 0.15),
+          new THREE.Vector2(0.26, 0.30),
+          new THREE.Vector2(0.28, 0.50),
+          new THREE.Vector2(0.30, 0.70),
+          new THREE.Vector2(0.28, 0.85),
+          new THREE.Vector2(0.24, 0.95),
+          new THREE.Vector2(0.26, 1.05),
+          new THREE.Vector2(0.28, 1.15),
+          new THREE.Vector2(0.26, 1.25),
+          new THREE.Vector2(0.22, 1.32),
+          new THREE.Vector2(0.24, 1.40),
+          new THREE.Vector2(0.26, 1.48),
+          new THREE.Vector2(0.24, 1.55),
+          new THREE.Vector2(0.0, 1.55)
+        ];
+        const geo = new THREE.LatheGeometry(points, 28);
+        const king = new THREE.Mesh(geo, material);
+        king.castShadow = true;
+        king.receiveShadow = true;
+        group.add(king);
+        
+        const crossVGeo = new THREE.BoxGeometry(0.09, 0.42, 0.09);
         const crossV = new THREE.Mesh(crossVGeo, material);
-        crossV.position.y = 1.4;
+        crossV.position.y = 1.77;
         crossV.castShadow = true;
         group.add(crossV);
-
-        const crossHGeo = new THREE.BoxGeometry(0.25, 0.08, 0.08);
+        
+        const crossHGeo = new THREE.BoxGeometry(0.32, 0.09, 0.09);
         const crossH = new THREE.Mesh(crossHGeo, material);
-        crossH.position.y = 1.45;
+        crossH.position.y = 1.82;
         crossH.castShadow = true;
         group.add(crossH);
         break;
@@ -874,9 +993,18 @@
     renderer.render(scene, camera);
   }
 
+  function safeInit() {
+    if (typeof THREE !== 'undefined' && typeof Chess !== 'undefined') {
+      init();
+    } else {
+      console.log('En attente du chargement de Three.js et chess.js...');
+      setTimeout(safeInit, 100);
+    }
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', safeInit);
   } else {
-    init();
+    safeInit();
   }
 })();
