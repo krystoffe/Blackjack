@@ -28,8 +28,8 @@ jobs:
         with:
           node-version: '20'
       
-      - name: Run game logic tests
-        run: node test-logic.js
+      - name: Run Blackjack game logic tests
+        run: node blackjack/test-logic.js
 
   deploy:
     name: Deploy to Pages

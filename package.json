@@ -1,0 +1,18 @@
+{
+  "name": "hub-jeux",
+  "version": "1.0.0",
+  "description": "Hub de jeux web : Blackjack et Échecs 3D",
+  "scripts": {
+    "test": "node blackjack/test-logic.js && node test-browser.js",
+    "test:blackjack": "node blackjack/test-logic.js",
+    "test:browser": "node test-browser.js",
+    "serve": "npx serve -l 8000"
+  },
+  "keywords": ["games", "blackjack", "chess", "3d", "threejs"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "puppeteer": "^21.0.0",
+    "serve-handler": "^6.1.5"
+  }
+}
