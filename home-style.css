@@ -1,0 +1,241 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg-dark: #0f0f23;
+  --bg-card: #1a1a2e;
+  --bg-card-hover: #25253e;
+  --accent-primary: #6c5ce7;
+  --accent-secondary: #00b894;
+  --text-primary: #f5f5f5;
+  --text-secondary: #b8b8c8;
+  --shadow: rgba(0, 0, 0, 0.4);
+  --shadow-hover: rgba(108, 92, 231, 0.3);
+  --radius: 20px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100vh;
+  font-family: 'Poppins', system-ui, sans-serif;
+  background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 50%, #0f0f23 100%);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+  gap: 2rem;
+}
+
+header {
+  text-align: center;
+  animation: fadeInDown 0.6s ease-out;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+main {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 0.5rem;
+}
+
+.game-card {
+  position: relative;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 24px var(--shadow);
+  text-decoration: none;
+  color: inherit;
+  animation: fadeInUp 0.6s ease-out backwards;
+}
+
+.game-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(108, 92, 231, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 16px 48px var(--shadow-hover);
+  background: var(--bg-card-hover);
+}
+
+.game-card:hover::before {
+  opacity: 1;
+}
+
+.game-card:active {
+  transform: translateY(-4px) scale(1.01);
+}
+
+.game-icon {
+  font-size: 5rem;
+  text-align: center;
+  padding: 2.5rem 1rem 1.5rem;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.2) 100%);
+}
+
+.game-content {
+  padding: 1.5rem;
+  position: relative;
+}
+
+.game-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.game-description {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.game-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.feature-tag {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  background: rgba(108, 92, 231, 0.15);
+  border: 1px solid rgba(108, 92, 231, 0.3);
+  border-radius: 20px;
+  color: var(--accent-primary);
+  font-weight: 500;
+}
+
+.play-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+}
+
+.play-button:hover {
+  box-shadow: 0 6px 20px rgba(108, 92, 231, 0.5);
+  transform: translateY(-2px);
+}
+
+footer {
+  margin-top: 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  animation: fadeIn 1s ease-out 0.3s backwards;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 1.5rem 0.75rem;
+    gap: 1.5rem;
+  }
+
+  main {
+    gap: 1rem;
+    grid-template-columns: 1fr;
+  }
+
+  .game-icon {
+    font-size: 4rem;
+    padding: 2rem 1rem 1rem;
+  }
+
+  .game-content {
+    padding: 1.25rem;
+  }
+
+  .game-title {
+    font-size: 1.4rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  main {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

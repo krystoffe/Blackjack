@@ -3,51 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0d5c3d" />
-  <title>Blackjack — Table verte</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <title>Hub Jeux — Choisis ton jeu</title>
+  <link rel="stylesheet" href="home-style.css" />
 </head>
 <body>
-  <h1>♠ Blackjack ♥</h1>
-  <p class="subtitle">Sabot 6 jeux · Croupier reste sur 17 souple · Blackjack paie 3:2</p>
+  <header>
+    <h1>🎮 Hub Jeux</h1>
+    <p class="tagline">Choisis ton jeu et amuse-toi bien !</p>
+  </header>
 
-  <div class="table" role="main" aria-label="Table de blackjack">
-    <div class="rail" aria-hidden="true"></div>
+  <main id="games-grid" role="main" aria-label="Liste des jeux disponibles">
+    <!-- Games will be dynamically inserted here -->
+  </main>
 
-    <div class="hand-zone dealer-zone">
-      <div class="hand-label">Croupier</div>
-      <div class="hand-value" id="dealer-value"></div>
-      <div class="cards" id="dealer-cards"></div>
-    </div>
+  <footer>
+    <p>Fait avec ❤️ — Tous les jeux fonctionnent sur mobile et desktop</p>
+  </footer>
 
-    <div class="message-banner" id="message" aria-live="polite"></div>
-
-    <div class="hand-zone">
-      <div class="hands-row" id="player-hands"></div>
-    </div>
-  </div>
-
-  <div class="controls">
-    <div class="top-bar">
-      <div class="bankroll">Banque : <strong id="bankroll">1000</strong> jetons</div>
-      <div class="current-bet">Mise : <strong id="current-bet">0</strong> jetons</div>
-    </div>
-
-    <div class="chip-row" id="chip-row" aria-label="Jetons"></div>
-
-    <div class="actions">
-      <button type="button" class="action" id="btn-deal">Distribuer</button>
-      <button type="button" class="action" id="btn-hit" disabled>Tirer</button>
-      <button type="button" class="action" id="btn-stand" disabled>Rester</button>
-      <button type="button" class="action" id="btn-double" disabled>Doubler</button>
-      <button type="button" class="action" id="btn-split" disabled>Séparer</button>
-      <button type="button" class="action secondary" id="btn-clear" disabled>Annuler mise</button>
-      <button type="button" class="action secondary" id="btn-new">Nouvelle partie</button>
-    </div>
-
-    <p class="hint">Jetons : 5 · 10 · 25 · 50 · 100 — Séparer jusqu’à 4 mains · As séparés = une carte chacun</p>
-  </div>
-
-  <script src="game.js"></script>
+  <script src="home.js"></script>
 </body>
 </html>

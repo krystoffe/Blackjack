@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d5c3d" />
+  <title>Blackjack — Table verte</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <a href="../" class="home-link" aria-label="Retour à l'accueil">← Accueil</a>
+  <h1>♠ Blackjack ♥</h1>
+  <p class="subtitle">Sabot 6 jeux · Croupier reste sur 17 souple · Blackjack paie 3:2</p>
+
+  <div class="table" role="main" aria-label="Table de blackjack">
+    <div class="rail" aria-hidden="true"></div>
+
+    <div class="hand-zone dealer-zone">
+      <div class="hand-label">Croupier</div>
+      <div class="hand-value" id="dealer-value"></div>
+      <div class="cards" id="dealer-cards"></div>
+    </div>
+
+    <div class="message-banner" id="message" aria-live="polite"></div>
+
+    <div class="hand-zone">
+      <div class="hands-row" id="player-hands"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="top-bar">
+      <div class="bankroll">Banque : <strong id="bankroll">1000</strong> jetons</div>
+      <div class="current-bet">Mise : <strong id="current-bet">0</strong> jetons</div>
+    </div>
+
+    <div class="chip-row" id="chip-row" aria-label="Jetons"></div>
+
+    <div class="actions">
+      <button type="button" class="action" id="btn-deal">Distribuer</button>
+      <button type="button" class="action" id="btn-hit" disabled>Tirer</button>
+      <button type="button" class="action" id="btn-stand" disabled>Rester</button>
+      <button type="button" class="action" id="btn-double" disabled>Doubler</button>
+      <button type="button" class="action" id="btn-split" disabled>Séparer</button>
+      <button type="button" class="action secondary" id="btn-clear" disabled>Annuler mise</button>
+      <button type="button" class="action secondary" id="btn-new">Nouvelle partie</button>
+    </div>
+
+    <p class="hint">Jetons : 5 · 10 · 25 · 50 · 100 — Séparer jusqu’à 4 mains · As séparés = une carte chacun</p>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
