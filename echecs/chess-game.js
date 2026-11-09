@@ -106,10 +106,10 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
     scene.add(ambientLight);
 
-    const mainLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    const mainLight = new THREE.DirectionalLight(0xffffff, 0.45);
     mainLight.position.set(6, 15, 6);
     mainLight.castShadow = true;
     mainLight.shadow.camera.near = 0.1;
@@ -122,15 +122,15 @@
     mainLight.shadow.mapSize.height = 2048;
     scene.add(mainLight);
 
-    const fillLight = new THREE.DirectionalLight(0xf0d78c, 0.4);
+    const fillLight = new THREE.DirectionalLight(0xf0d78c, 0.15);
     fillLight.position.set(-6, 8, -6);
     scene.add(fillLight);
 
-    const rimLight = new THREE.PointLight(0xffffff, 0.8, 25);
+    const rimLight = new THREE.PointLight(0xffffff, 0.25, 25);
     rimLight.position.set(0, 12, -10);
     scene.add(rimLight);
     
-    const edgeLight = new THREE.PointLight(0xaaccff, 0.6, 20);
+    const edgeLight = new THREE.PointLight(0xaaccff, 0.2, 20);
     edgeLight.position.set(-8, 6, 0);
     scene.add(edgeLight);
 
@@ -163,14 +163,14 @@
     boardGroup.add(base);
 
     const lightSquareMaterial = new THREE.MeshStandardMaterial({
-      color: 0xf0d9b5,
-      roughness: 0.6,
-      metalness: 0.05
+      color: 0xd9c7a3,
+      roughness: 0.85,
+      metalness: 0
     });
     const darkSquareMaterial = new THREE.MeshStandardMaterial({
-      color: 0xb58863,
-      roughness: 0.6,
-      metalness: 0.05
+      color: 0x8b6a46,
+      roughness: 0.85,
+      metalness: 0
     });
 
     for (let row = 0; row < 8; row++) {
@@ -228,8 +228,8 @@
       roughness: isWhite ? 0.35 : 0.25,
       metalness: isWhite ? 0.05 : 0.15,
       envMapIntensity: 1.0,
-      emissive: isWhite ? 0x000000 : 0x2a2520,
-      emissiveIntensity: isWhite ? 0 : 0.1
+      emissive: isWhite ? 0xf5f5dc : 0x4a4035,
+      emissiveIntensity: isWhite ? 0.2 : 0.35
     });
 
     const group = new THREE.Group();
@@ -238,21 +238,22 @@
       case 'p': {
         const points = [
           new THREE.Vector2(0.0, 0.0),
-          new THREE.Vector2(0.30, 0.0),
-          new THREE.Vector2(0.28, 0.03),
-          new THREE.Vector2(0.16, 0.10),
-          new THREE.Vector2(0.14, 0.18),
-          new THREE.Vector2(0.15, 0.28),
-          new THREE.Vector2(0.16, 0.38),
-          new THREE.Vector2(0.14, 0.45),
-          new THREE.Vector2(0.12, 0.50),
-          new THREE.Vector2(0.14, 0.55),
-          new THREE.Vector2(0.18, 0.60),
-          new THREE.Vector2(0.16, 0.65),
-          new THREE.Vector2(0.10, 0.68),
-          new THREE.Vector2(0.0, 0.68)
+          new THREE.Vector2(0.35, 0.0),
+          new THREE.Vector2(0.32, 0.05),
+          new THREE.Vector2(0.18, 0.15),
+          new THREE.Vector2(0.16, 0.25),
+          new THREE.Vector2(0.18, 0.35),
+          new THREE.Vector2(0.20, 0.45),
+          new THREE.Vector2(0.22, 0.55),
+          new THREE.Vector2(0.20, 0.62),
+          new THREE.Vector2(0.15, 0.68),
+          new THREE.Vector2(0.18, 0.73),
+          new THREE.Vector2(0.22, 0.78),
+          new THREE.Vector2(0.20, 0.83),
+          new THREE.Vector2(0.12, 0.88),
+          new THREE.Vector2(0.0, 0.88)
         ];
-        const geo = new THREE.LatheGeometry(points, 20);
+        const geo = new THREE.LatheGeometry(points, 24);
         const pawn = new THREE.Mesh(geo, material);
         pawn.castShadow = true;
         pawn.receiveShadow = true;
@@ -263,131 +264,109 @@
       case 'n': {
         const basePoints = [
           new THREE.Vector2(0.0, 0.0),
-          new THREE.Vector2(0.32, 0.0),
-          new THREE.Vector2(0.30, 0.04),
-          new THREE.Vector2(0.20, 0.12),
-          new THREE.Vector2(0.18, 0.25),
-          new THREE.Vector2(0.19, 0.40),
-          new THREE.Vector2(0.17, 0.55),
-          new THREE.Vector2(0.14, 0.68),
-          new THREE.Vector2(0.0, 0.68)
+          new THREE.Vector2(0.35, 0.0),
+          new THREE.Vector2(0.32, 0.05),
+          new THREE.Vector2(0.22, 0.15),
+          new THREE.Vector2(0.20, 0.30),
+          new THREE.Vector2(0.22, 0.50),
+          new THREE.Vector2(0.20, 0.65),
+          new THREE.Vector2(0.15, 0.75),
+          new THREE.Vector2(0.0, 0.75)
         ];
-        const baseGeo = new THREE.LatheGeometry(basePoints, 18);
+        const baseGeo = new THREE.LatheGeometry(basePoints, 20);
         const base = new THREE.Mesh(baseGeo, material);
         base.castShadow = true;
         group.add(base);
         
-        const neckGeo = new THREE.CylinderGeometry(0.12, 0.16, 0.30, 12);
-        const neck = new THREE.Mesh(neckGeo, material);
-        neck.position.set(0.08, 0.83, 0);
-        neck.rotation.z = Math.PI / 6;
-        neck.castShadow = true;
-        group.add(neck);
-        
-        const headGeo = new THREE.BoxGeometry(0.32, 0.38, 0.30);
+        const headGeo = new THREE.BoxGeometry(0.28, 0.45, 0.38);
         const head = new THREE.Mesh(headGeo, material);
-        head.position.set(0.22, 1.05, 0);
-        head.rotation.y = Math.PI / 8;
-        head.rotation.z = Math.PI / 9;
+        head.position.set(0.18, 0.88, 0);
+        head.rotation.y = Math.PI / 7;
+        head.rotation.z = Math.PI / 12;
         head.castShadow = true;
         group.add(head);
         
-        const snoutGeo = new THREE.ConeGeometry(0.14, 0.22, 8);
+        const snoutGeo = new THREE.BoxGeometry(0.18, 0.22, 0.28);
         const snout = new THREE.Mesh(snoutGeo, material);
-        snout.position.set(0.38, 1.00, 0);
-        snout.rotation.set(0, Math.PI / 8, -Math.PI / 2.2);
+        snout.position.set(0.30, 0.82, 0);
+        snout.rotation.y = Math.PI / 7;
+        snout.rotation.z = Math.PI / 20;
         snout.castShadow = true;
         group.add(snout);
         
-        const ear1Geo = new THREE.ConeGeometry(0.06, 0.20, 6);
-        const ear1 = new THREE.Mesh(ear1Geo, material);
-        ear1.position.set(0.20, 1.28, -0.08);
-        ear1.rotation.z = -Math.PI / 9;
-        ear1.castShadow = true;
-        group.add(ear1);
+        const earGeo = new THREE.ConeGeometry(0.08, 0.25, 8);
+        const ear = new THREE.Mesh(earGeo, material);
+        ear.position.set(0.16, 1.15, 0);
+        ear.rotation.z = -Math.PI / 10;
+        ear.castShadow = true;
+        group.add(ear);
         
-        const ear2 = new THREE.Mesh(ear1Geo, material);
-        ear2.position.set(0.20, 1.28, 0.08);
-        ear2.rotation.z = -Math.PI / 9;
-        ear2.castShadow = true;
-        group.add(ear2);
-        
-        const eyeGeo = new THREE.SphereGeometry(0.04, 8, 8);
-        const eye1 = new THREE.Mesh(eyeGeo, new THREE.MeshStandardMaterial({ color: 0x000000 }));
-        eye1.position.set(0.30, 1.10, 0.10);
-        group.add(eye1);
-        
-        const eye2 = new THREE.Mesh(eyeGeo, new THREE.MeshStandardMaterial({ color: 0x000000 }));
-        eye2.position.set(0.30, 1.10, -0.10);
-        group.add(eye2);
-        
+        const maneGeo = new THREE.BoxGeometry(0.12, 0.35, 0.15);
+        const mane = new THREE.Mesh(maneGeo, material);
+        mane.position.set(0.08, 1.0, 0);
+        mane.rotation.z = -Math.PI / 8;
+        mane.castShadow = true;
+        group.add(mane);
         break;
       }
       
       case 'b': {
         const points = [
           new THREE.Vector2(0.0, 0.0),
-          new THREE.Vector2(0.33, 0.0),
-          new THREE.Vector2(0.31, 0.04),
-          new THREE.Vector2(0.22, 0.12),
-          new THREE.Vector2(0.20, 0.25),
-          new THREE.Vector2(0.18, 0.40),
-          new THREE.Vector2(0.20, 0.55),
-          new THREE.Vector2(0.22, 0.68),
-          new THREE.Vector2(0.20, 0.80),
-          new THREE.Vector2(0.16, 0.90),
-          new THREE.Vector2(0.18, 1.00),
-          new THREE.Vector2(0.20, 1.10),
-          new THREE.Vector2(0.16, 1.18),
-          new THREE.Vector2(0.10, 1.24),
-          new THREE.Vector2(0.12, 1.32),
-          new THREE.Vector2(0.16, 1.38),
-          new THREE.Vector2(0.14, 1.46),
-          new THREE.Vector2(0.08, 1.52),
-          new THREE.Vector2(0.0, 1.52)
+          new THREE.Vector2(0.36, 0.0),
+          new THREE.Vector2(0.33, 0.05),
+          new THREE.Vector2(0.24, 0.15),
+          new THREE.Vector2(0.22, 0.30),
+          new THREE.Vector2(0.20, 0.45),
+          new THREE.Vector2(0.22, 0.60),
+          new THREE.Vector2(0.24, 0.70),
+          new THREE.Vector2(0.22, 0.80),
+          new THREE.Vector2(0.18, 0.90),
+          new THREE.Vector2(0.20, 0.98),
+          new THREE.Vector2(0.22, 1.05),
+          new THREE.Vector2(0.18, 1.12),
+          new THREE.Vector2(0.12, 1.18),
+          new THREE.Vector2(0.08, 1.22),
+          new THREE.Vector2(0.10, 1.28),
+          new THREE.Vector2(0.15, 1.32),
+          new THREE.Vector2(0.12, 1.38),
+          new THREE.Vector2(0.0, 1.38)
         ];
-        const geo = new THREE.LatheGeometry(points, 22);
+        const geo = new THREE.LatheGeometry(points, 24);
         const bishop = new THREE.Mesh(geo, material);
         bishop.castShadow = true;
         bishop.receiveShadow = true;
         group.add(bishop);
         
-        const slitGeo = new THREE.BoxGeometry(0.18, 0.08, 0.08);
-        const slit = new THREE.Mesh(slitGeo, new THREE.MeshStandardMaterial({ color: 0x000000 }));
-        slit.position.y = 1.55;
-        slit.rotation.z = Math.PI / 4;
+        const slitGeo = new THREE.SphereGeometry(0.08, 12, 12);
+        const slit = new THREE.Mesh(slitGeo, material);
+        slit.position.y = 1.40;
+        slit.scale.set(0.8, 0.6, 1);
         slit.castShadow = true;
         group.add(slit);
-        
-        const capGeo = new THREE.SphereGeometry(0.12, 12, 12);
-        const cap = new THREE.Mesh(capGeo, material);
-        cap.position.y = 1.62;
-        cap.scale.set(1, 0.7, 1);
-        cap.castShadow = true;
-        group.add(cap);
         break;
       }
       
       case 'r': {
         const points = [
           new THREE.Vector2(0.0, 0.0),
-          new THREE.Vector2(0.35, 0.0),
-          new THREE.Vector2(0.33, 0.04),
-          new THREE.Vector2(0.24, 0.12),
-          new THREE.Vector2(0.22, 0.25),
-          new THREE.Vector2(0.24, 0.42),
-          new THREE.Vector2(0.26, 0.60),
-          new THREE.Vector2(0.28, 0.78),
-          new THREE.Vector2(0.30, 0.92),
-          new THREE.Vector2(0.32, 1.02),
-          new THREE.Vector2(0.30, 1.10),
-          new THREE.Vector2(0.28, 1.15),
-          new THREE.Vector2(0.30, 1.22),
-          new THREE.Vector2(0.32, 1.28),
-          new THREE.Vector2(0.30, 1.35),
-          new THREE.Vector2(0.0, 1.35)
+          new THREE.Vector2(0.38, 0.0),
+          new THREE.Vector2(0.35, 0.05),
+          new THREE.Vector2(0.26, 0.15),
+          new THREE.Vector2(0.24, 0.30),
+          new THREE.Vector2(0.26, 0.50),
+          new THREE.Vector2(0.28, 0.70),
+          new THREE.Vector2(0.30, 0.85),
+          new THREE.Vector2(0.32, 0.95),
+          new THREE.Vector2(0.34, 1.00),
+          new THREE.Vector2(0.32, 1.05),
+          new THREE.Vector2(0.28, 1.08),
+          new THREE.Vector2(0.30, 1.12),
+          new THREE.Vector2(0.32, 1.15),
+          new THREE.Vector2(0.30, 1.20),
+          new THREE.Vector2(0.0, 1.20)
         ];
-        const geo = new THREE.LatheGeometry(points, 22);
+        const geo = new THREE.LatheGeometry(points, 24);
         const rook = new THREE.Mesh(geo, material);
         rook.castShadow = true;
         rook.receiveShadow = true;
@@ -395,12 +374,12 @@
         
         for (let i = 0; i < 4; i++) {
           const angle = (i * Math.PI) / 2;
-          const crenelGeo = new THREE.BoxGeometry(0.14, 0.22, 0.14);
+          const crenelGeo = new THREE.BoxGeometry(0.12, 0.18, 0.12);
           const crenel = new THREE.Mesh(crenelGeo, material);
           crenel.position.set(
-            Math.cos(angle) * 0.28,
-            1.46,
-            Math.sin(angle) * 0.28
+            Math.cos(angle) * 0.26,
+            1.29,
+            Math.sin(angle) * 0.26
           );
           crenel.castShadow = true;
           group.add(crenel);
@@ -411,22 +390,22 @@
       case 'q': {
         const points = [
           new THREE.Vector2(0.0, 0.0),
-          new THREE.Vector2(0.36, 0.0),
-          new THREE.Vector2(0.34, 0.04),
-          new THREE.Vector2(0.25, 0.12),
-          new THREE.Vector2(0.23, 0.25),
-          new THREE.Vector2(0.25, 0.45),
-          new THREE.Vector2(0.27, 0.65),
-          new THREE.Vector2(0.25, 0.82),
-          new THREE.Vector2(0.21, 0.95),
-          new THREE.Vector2(0.23, 1.08),
-          new THREE.Vector2(0.25, 1.22),
-          new THREE.Vector2(0.23, 1.35),
-          new THREE.Vector2(0.19, 1.45),
-          new THREE.Vector2(0.21, 1.55),
-          new THREE.Vector2(0.0, 1.55)
+          new THREE.Vector2(0.38, 0.0),
+          new THREE.Vector2(0.35, 0.05),
+          new THREE.Vector2(0.26, 0.15),
+          new THREE.Vector2(0.24, 0.30),
+          new THREE.Vector2(0.26, 0.50),
+          new THREE.Vector2(0.28, 0.70),
+          new THREE.Vector2(0.26, 0.85),
+          new THREE.Vector2(0.22, 0.95),
+          new THREE.Vector2(0.24, 1.05),
+          new THREE.Vector2(0.26, 1.15),
+          new THREE.Vector2(0.24, 1.25),
+          new THREE.Vector2(0.20, 1.32),
+          new THREE.Vector2(0.22, 1.38),
+          new THREE.Vector2(0.0, 1.38)
         ];
-        const geo = new THREE.LatheGeometry(points, 26);
+        const geo = new THREE.LatheGeometry(points, 28);
         const queen = new THREE.Mesh(geo, material);
         queen.castShadow = true;
         queen.receiveShadow = true;
@@ -434,59 +413,54 @@
         
         for (let i = 0; i < 8; i++) {
           const angle = (i * Math.PI * 2) / 8;
-          const spikeGeo = new THREE.ConeGeometry(0.06, 0.35, 8);
+          const spikeGeo = new THREE.ConeGeometry(0.05, 0.28, 8);
           const spike = new THREE.Mesh(spikeGeo, material);
           spike.position.set(
-            Math.cos(angle) * 0.19,
-            1.72,
-            Math.sin(angle) * 0.19
+            Math.cos(angle) * 0.20,
+            1.52,
+            Math.sin(angle) * 0.20
           );
           spike.castShadow = true;
           group.add(spike);
         }
-        
-        const orb = new THREE.Mesh(new THREE.SphereGeometry(0.10, 12, 12), material);
-        orb.position.y = 1.95;
-        orb.castShadow = true;
-        group.add(orb);
         break;
       }
       
       case 'k': {
         const points = [
           new THREE.Vector2(0.0, 0.0),
-          new THREE.Vector2(0.38, 0.0),
-          new THREE.Vector2(0.36, 0.04),
-          new THREE.Vector2(0.27, 0.12),
-          new THREE.Vector2(0.25, 0.25),
-          new THREE.Vector2(0.27, 0.45),
-          new THREE.Vector2(0.29, 0.68),
-          new THREE.Vector2(0.27, 0.88),
-          new THREE.Vector2(0.23, 1.02),
-          new THREE.Vector2(0.25, 1.18),
-          new THREE.Vector2(0.27, 1.35),
-          new THREE.Vector2(0.25, 1.50),
-          new THREE.Vector2(0.21, 1.62),
-          new THREE.Vector2(0.23, 1.75),
-          new THREE.Vector2(0.25, 1.88),
-          new THREE.Vector2(0.23, 2.00),
-          new THREE.Vector2(0.0, 2.00)
+          new THREE.Vector2(0.40, 0.0),
+          new THREE.Vector2(0.37, 0.05),
+          new THREE.Vector2(0.28, 0.15),
+          new THREE.Vector2(0.26, 0.30),
+          new THREE.Vector2(0.28, 0.50),
+          new THREE.Vector2(0.30, 0.70),
+          new THREE.Vector2(0.28, 0.85),
+          new THREE.Vector2(0.24, 0.95),
+          new THREE.Vector2(0.26, 1.05),
+          new THREE.Vector2(0.28, 1.15),
+          new THREE.Vector2(0.26, 1.25),
+          new THREE.Vector2(0.22, 1.32),
+          new THREE.Vector2(0.24, 1.40),
+          new THREE.Vector2(0.26, 1.48),
+          new THREE.Vector2(0.24, 1.55),
+          new THREE.Vector2(0.0, 1.55)
         ];
-        const geo = new THREE.LatheGeometry(points, 26);
+        const geo = new THREE.LatheGeometry(points, 28);
         const king = new THREE.Mesh(geo, material);
         king.castShadow = true;
         king.receiveShadow = true;
         group.add(king);
         
-        const crossVGeo = new THREE.BoxGeometry(0.11, 0.55, 0.11);
+        const crossVGeo = new THREE.BoxGeometry(0.09, 0.42, 0.09);
         const crossV = new THREE.Mesh(crossVGeo, material);
-        crossV.position.y = 2.28;
+        crossV.position.y = 1.77;
         crossV.castShadow = true;
         group.add(crossV);
         
-        const crossHGeo = new THREE.BoxGeometry(0.40, 0.11, 0.11);
+        const crossHGeo = new THREE.BoxGeometry(0.32, 0.09, 0.09);
         const crossH = new THREE.Mesh(crossHGeo, material);
-        crossH.position.y = 2.35;
+        crossH.position.y = 1.82;
         crossH.castShadow = true;
         group.add(crossH);
         break;
@@ -673,11 +647,11 @@
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         const isLight = (row + col) % 2 === 0;
-        const color = isLight ? 0xf0d9b5 : 0xb58863;
+        const color = isLight ? 0xd9c7a3 : 0x8b6a46;
         board3D[row][col].square.material = new THREE.MeshStandardMaterial({
           color,
-          roughness: 0.6,
-          metalness: 0.05
+          roughness: 0.85,
+          metalness: 0
         });
       }
     }
