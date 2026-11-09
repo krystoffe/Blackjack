@@ -22,6 +22,8 @@
   let isAiThinking = false;
   let animating = false;
   let moveHistory = [];
+  let statusNotice = '';
+  let statusNoticeTimer = null;
   
   const SQUARE_SIZE = 1;
   const BOARD_OFFSET = 3.5;
@@ -104,6 +106,7 @@
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.domElement.style.touchAction = 'none';
     container.appendChild(renderer.domElement);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
@@ -533,7 +536,33 @@
 
   function setupEventListeners() {
     renderer.domElement.addEventListener('click', onBoardClick);
-    renderer.domElement.addEventListener('touchend', onBoardClick);
+    let tapStart = null;
+    renderer.domElement.addEventListener('touchstart', (event) => {
+      if (event.touches.length !== 1) {
+        tapStart = null;
+        return;
+      }
+      tapStart = {
+        x: event.touches[0].clientX,
+        y: event.touches[0].clientY,
+        moved: false
+      };
+    }, { passive: true });
+    renderer.domElement.addEventListener('touchmove', (event) => {
+      if (!tapStart || event.touches.length !== 1) {
+        tapStart = null;
+        return;
+      }
+      const dx = event.touches[0].clientX - tapStart.x;
+      const dy = event.touches[0].clientY - tapStart.y;
+      if (dx * dx + dy * dy > 64) tapStart.moved = true;
+    }, { passive: true });
+    renderer.domElement.addEventListener('touchend', (event) => {
+      const start = tapStart;
+      tapStart = null;
+      if (!start || start.moved || (event.touches && event.touches.length > 0)) return;
+      onBoardClick(event);
+    });
     
     document.getElementById('btn-new-game').addEventListener('click', newGame);
     document.getElementById('btn-undo').addEventListener('click', undoMove);
@@ -559,6 +588,246 @@
         newGame();
       });
     });
+    
+    setupBoardSizeControl();
+    setupFullscreenControl();
+  }
+  
+  function isMobileLayout() {
+    return window.matchMedia('(max-width: 768px)').matches;
+  }
+
+  function readSavedBoardSize() {
+    try {
+      return localStorage.getItem('chess-board-size') || '660';
+    } catch (e) {
+      return '660';
+    }
+  }
+
+  function writeSavedBoardSize(size) {
+    try {
+      localStorage.setItem('chess-board-size', size);
+    } catch (e) {
+      // localStorage can be blocked; the choice still applies for this session.
+    }
+  }
+
+  function setupBoardSizeControl() {
+    const sizeSelect = document.getElementById('board-size');
+    if (!sizeSelect) return;
+
+    const savedSize = readSavedBoardSize();
+    if (sizeSelect.querySelector(`option[value="${savedSize}"]`)) {
+      sizeSelect.value = savedSize;
+    }
+    applyBoardSize(sizeSelect.value || '660');
+
+    sizeSelect.addEventListener('change', (e) => {
+      const size = e.target.value;
+      writeSavedBoardSize(size);
+      applyBoardSize(size);
+    });
+
+    window.addEventListener('resize', () => {
+      if (isPresentationFullscreen()) {
+        scheduleRendererResize();
+        return;
+      }
+      applyBoardSize(sizeSelect.value || '660');
+    });
+    window.addEventListener('orientationchange', () => {
+      if (isPresentationFullscreen()) scheduleRendererResize();
+    });
+  }
+
+  function applyBoardSize(size) {
+    const container = document.getElementById('chess-container');
+    if (!container || isPresentationFullscreen()) return;
+
+    if (isMobileLayout()) {
+      container.style.width = '';
+      container.style.height = '';
+      container.style.maxWidth = '';
+      container.style.maxHeight = '';
+    } else if (size === 'max') {
+      const fit = 'min(calc(100vh - 140px), calc(100vw - 520px))';
+      container.style.width = fit;
+      container.style.height = fit;
+      container.style.maxWidth = fit;
+      container.style.maxHeight = fit;
+    } else {
+      const sizeNum = parseInt(size, 10) || 660;
+      container.style.width = `${sizeNum}px`;
+      container.style.height = `${sizeNum}px`;
+      container.style.maxWidth = `${sizeNum}px`;
+      container.style.maxHeight = `${sizeNum}px`;
+    }
+
+    scheduleRendererResize();
+  }
+
+  function scheduleRendererResize() {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(onWindowResize);
+    });
+  }
+
+  let pseudoFullscreen = false;
+
+  function isFullscreenSupported() {
+    const stage = document.getElementById('board-stage');
+    if (!stage) return false;
+    const api = !!(
+      document.fullscreenEnabled ||
+      document.webkitFullscreenEnabled ||
+      document.mozFullScreenEnabled ||
+      document.msFullscreenEnabled
+    );
+    const method = !!(
+      stage.requestFullscreen ||
+      stage.webkitRequestFullscreen ||
+      stage.mozRequestFullScreen ||
+      stage.msRequestFullscreen
+    );
+    return api && method;
+  }
+
+  function isFullscreenActive() {
+    return !!(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    );
+  }
+
+  function isPresentationFullscreen() {
+    return isFullscreenActive() || pseudoFullscreen;
+  }
+
+  function setupFullscreenControl() {
+    const fullscreenBtn = document.getElementById('btn-fullscreen');
+    const stage = document.getElementById('board-stage');
+
+    if (!fullscreenBtn || !stage) return;
+
+    fullscreenBtn.hidden = false;
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+    document.addEventListener('mozfullscreenchange', onFullscreenChange);
+    document.addEventListener('msfullscreenchange', onFullscreenChange);
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && pseudoFullscreen) {
+        exitPseudoFullscreen();
+      }
+    });
+  }
+
+  function enterPseudoFullscreen() {
+    pseudoFullscreen = true;
+    applyFullscreenChrome(true);
+  }
+
+  function exitPseudoFullscreen() {
+    pseudoFullscreen = false;
+    applyFullscreenChrome(false);
+  }
+
+  function exitNativeFullscreen() {
+    const exit = document.exitFullscreen ||
+      document.webkitExitFullscreen ||
+      document.mozCancelFullScreen ||
+      document.msExitFullscreen;
+    if (!exit) return;
+    try {
+      const result = exit.call(document);
+      if (result && typeof result.catch === 'function') result.catch(() => {});
+    } catch (e) {
+      // The API can throw if the document is not fullscreen.
+    }
+  }
+
+  function toggleFullscreen() {
+    const stage = document.getElementById('board-stage');
+    if (!stage) return;
+
+    if (isFullscreenActive()) {
+      exitNativeFullscreen();
+      return;
+    }
+    if (pseudoFullscreen) {
+      exitPseudoFullscreen();
+      return;
+    }
+
+    if (!isFullscreenSupported()) {
+      enterPseudoFullscreen();
+      return;
+    }
+
+    const request = stage.requestFullscreen ||
+      stage.webkitRequestFullscreen ||
+      stage.mozRequestFullScreen ||
+      stage.msRequestFullscreen;
+    try {
+      const result = request.call(stage);
+      if (result && typeof result.catch === 'function') {
+        result.catch(() => enterPseudoFullscreen());
+      }
+    } catch (e) {
+      enterPseudoFullscreen();
+    }
+  }
+
+  function applyFullscreenChrome(active) {
+    const stage = document.getElementById('board-stage');
+    const fullscreenLabel = document.getElementById('fullscreen-label');
+    const fullscreenBtn = document.getElementById('btn-fullscreen');
+    const label = active ? 'Quitter le plein écran' : 'Plein écran';
+
+    if (stage) stage.classList.toggle('is-fullscreen', active);
+    document.documentElement.classList.toggle('board-fullscreen', active);
+    document.body.classList.toggle('board-fullscreen', active);
+
+    if (fullscreenLabel) fullscreenLabel.textContent = label;
+    if (fullscreenBtn) fullscreenBtn.setAttribute('aria-label', label);
+
+    if (!active) {
+      const sizeSelect = document.getElementById('board-size');
+      applyBoardSize(sizeSelect ? sizeSelect.value : '660');
+    }
+    scheduleRendererResize();
+  }
+
+  function onFullscreenChange() {
+    if (isFullscreenActive()) {
+      pseudoFullscreen = false;
+      applyFullscreenChrome(true);
+      return;
+    }
+    if (!pseudoFullscreen) applyFullscreenChrome(false);
+  }
+
+  function showEnPassantMessage() {
+    statusNotice = 'Prise en passant !';
+    const toast = document.getElementById('board-toast');
+    if (toast) {
+      toast.hidden = false;
+      toast.textContent = statusNotice;
+    }
+    const status = document.getElementById('game-status');
+    if (status) status.textContent = statusNotice;
+
+    clearTimeout(statusNoticeTimer);
+    statusNoticeTimer = setTimeout(() => {
+      statusNotice = '';
+      const toastEl = document.getElementById('board-toast');
+      if (toastEl) toastEl.hidden = true;
+      if (game) updateUI();
+    }, 2800);
   }
 
   function onBoardClick(event) {
@@ -705,6 +974,7 @@
       if (epPawn) {
         addCapturedPiece('p', epPawn.userData.color);
       }
+      showEnPassantMessage();
     }
     
     const targetX = toFile * SQUARE_SIZE - BOARD_OFFSET;
@@ -956,7 +1226,9 @@
     `;
     
     let statusText = '';
-    if (isAiThinking) {
+    if (statusNotice) {
+      statusText = statusNotice;
+    } else if (isAiThinking) {
       statusText = '🤔 L\'IA réfléchit...';
     } else if (game.in_checkmate()) {
       const winner = game.turn() === 'w' ? 'Noirs' : 'Blancs';
@@ -1005,10 +1277,13 @@
 
   function onWindowResize() {
     const container = document.getElementById('chess-container');
-    const aspect = container.clientWidth / container.clientHeight;
-    camera.aspect = aspect;
+    if (!container || !camera || !renderer) return;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    if (!width || !height) return;
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(width, height);
   }
 
   function animate() {
@@ -1038,6 +1313,9 @@
         createPieces();
         clearHighlights();
         selectedSquare = null;
+        if (result.flags && result.flags.indexOf('e') !== -1) {
+          showEnPassantMessage();
+        }
         updateUI();
         
         if (gameMode === 'ai' && !game.game_over() && game.turn() === aiColor[0]) {
