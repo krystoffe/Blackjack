@@ -106,10 +106,10 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
     scene.add(ambientLight);
 
-    const mainLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    const mainLight = new THREE.DirectionalLight(0xffffff, 0.45);
     mainLight.position.set(6, 15, 6);
     mainLight.castShadow = true;
     mainLight.shadow.camera.near = 0.1;
@@ -122,15 +122,15 @@
     mainLight.shadow.mapSize.height = 2048;
     scene.add(mainLight);
 
-    const fillLight = new THREE.DirectionalLight(0xf0d78c, 0.4);
+    const fillLight = new THREE.DirectionalLight(0xf0d78c, 0.15);
     fillLight.position.set(-6, 8, -6);
     scene.add(fillLight);
 
-    const rimLight = new THREE.PointLight(0xffffff, 0.8, 25);
+    const rimLight = new THREE.PointLight(0xffffff, 0.25, 25);
     rimLight.position.set(0, 12, -10);
     scene.add(rimLight);
     
-    const edgeLight = new THREE.PointLight(0xaaccff, 0.6, 20);
+    const edgeLight = new THREE.PointLight(0xaaccff, 0.2, 20);
     edgeLight.position.set(-8, 6, 0);
     scene.add(edgeLight);
 
@@ -163,14 +163,14 @@
     boardGroup.add(base);
 
     const lightSquareMaterial = new THREE.MeshStandardMaterial({
-      color: 0xf0d9b5,
-      roughness: 0.6,
-      metalness: 0.05
+      color: 0xd9c7a3,
+      roughness: 0.85,
+      metalness: 0
     });
     const darkSquareMaterial = new THREE.MeshStandardMaterial({
-      color: 0xb58863,
-      roughness: 0.6,
-      metalness: 0.05
+      color: 0x8b6a46,
+      roughness: 0.85,
+      metalness: 0
     });
 
     for (let row = 0; row < 8; row++) {
@@ -228,8 +228,8 @@
       roughness: isWhite ? 0.35 : 0.25,
       metalness: isWhite ? 0.05 : 0.15,
       envMapIntensity: 1.0,
-      emissive: isWhite ? 0x000000 : 0x2a2520,
-      emissiveIntensity: isWhite ? 0 : 0.1
+      emissive: isWhite ? 0xf5f5dc : 0x4a4035,
+      emissiveIntensity: isWhite ? 0.2 : 0.35
     });
 
     const group = new THREE.Group();
@@ -673,11 +673,11 @@
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         const isLight = (row + col) % 2 === 0;
-        const color = isLight ? 0xf0d9b5 : 0xb58863;
+        const color = isLight ? 0xd9c7a3 : 0x8b6a46;
         board3D[row][col].square.material = new THREE.MeshStandardMaterial({
           color,
-          roughness: 0.6,
-          metalness: 0.05
+          roughness: 0.85,
+          metalness: 0
         });
       }
     }
