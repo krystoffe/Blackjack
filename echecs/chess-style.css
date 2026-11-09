@@ -461,10 +461,10 @@ h1 {
   }
 
   #chess-container {
-    width: 95vw;
-    max-width: 95vw;
+    width: min(95vw, 95vh);
+    height: min(95vw, 95vh);
+    max-width: min(95vw, 95vh);
     aspect-ratio: 1;
-    min-height: unset;
   }
 
   .modal-content {

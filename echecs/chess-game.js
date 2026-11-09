@@ -25,7 +25,7 @@
   
   const SQUARE_SIZE = 1;
   const BOARD_OFFSET = 3.5;
-  const DEFAULT_CAMERA_POSITION = { x: 0, y: 14, z: 10 };
+  const DEFAULT_CAMERA_POSITION = { x: 0, y: 11, z: 8 };
   const DEFAULT_CAMERA_LOOK_AT = { x: 0, y: 0, z: 0 };
 
   function init() {
@@ -1045,6 +1045,83 @@
       setTimeout(safeInit, 100);
     }
   }
+  
+  window.__chessTest = {
+    move: function(from, to, promotion) {
+      if (!game) return { error: 'Game not initialized' };
+      try {
+        const moveObj = promotion ? { from, to, promotion } : { from, to };
+        const result = game.move(moveObj);
+        if (!result) return { error: 'Invalid move', fen: game.fen() };
+        
+        clearPieces();
+        createPieces();
+        clearHighlights();
+        selectedSquare = null;
+        updateUI();
+        
+        if (gameMode === 'ai' && !game.game_over() && game.turn() === aiColor[0]) {
+          setTimeout(makeAIMove, 500);
+        }
+        
+        return { success: true, move: result.san, fen: game.fen(), turn: game.turn() };
+      } catch (e) {
+        return { error: e.message };
+      }
+    },
+    
+    fen: function() {
+      return game ? game.fen() : null;
+    },
+    
+    clickSquare: function(square) {
+      if (!game || !board3D || board3D.length === 0) {
+        return { error: 'Board not ready' };
+      }
+      
+      const file = square.charCodeAt(0) - 97;
+      const rank = 8 - parseInt(square[1]);
+      
+      if (rank < 0 || rank > 7 || file < 0 || file > 7) {
+        return { error: 'Invalid square' };
+      }
+      
+      const squareData = {
+        file: square[0],
+        rank: parseInt(square[1]),
+        row: rank,
+        col: file
+      };
+      
+      handleSquareClick(squareData);
+      return { success: true, square };
+    },
+    
+    getSquareScreenPos: function(square) {
+      if (!camera || !renderer) return null;
+      
+      const file = square.charCodeAt(0) - 97;
+      const rank = 8 - parseInt(square[1]);
+      const x = file * SQUARE_SIZE - BOARD_OFFSET;
+      const z = rank * SQUARE_SIZE - BOARD_OFFSET;
+      
+      const pos = new THREE.Vector3(x, 0, z);
+      pos.project(camera);
+      
+      const canvas = renderer.domElement;
+      const widthHalf = canvas.width / 2;
+      const heightHalf = canvas.height / 2;
+      
+      return {
+        x: (pos.x * widthHalf) + widthHalf,
+        y: -(pos.y * heightHalf) + heightHalf
+      };
+    },
+    
+    isReady: function() {
+      return !!(game && scene && camera && renderer && board3D.length > 0);
+    }
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', safeInit);
